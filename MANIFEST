@@ -1,0 +1,14 @@
+Reconfig.pm
+Reconfig.pod
+Makefile.PL
+MANIFEST
+README
+CHANGELOG
+t/banner.t
+t/cisco.t
+t/indentbug.t
+t/intzoom.t
+t/smalltest.t
+t/stringconfig.t
+t/trailingindent.t
+META.yml                                 Module meta-data (added by MakeMaker)
