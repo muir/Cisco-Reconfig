@@ -13,7 +13,7 @@ my $debugdump = 0;
 #	$Cisco::Reconfig::nonext = 1;
 #}
 
-BEGIN { plan test => 43 };
+BEGIN { plan test => 45 };
 
 sub wok
 {
@@ -28,15 +28,55 @@ sub wok
 my $config = readconfig(\*DATA);
 
 if ($debugdump) {
-	require Data::XDumper;
+	no warnings;
+	require FindBin;
+	require Data::Dumper;
 	require File::Slurp;
-	File::Slurp::write_file("dumped", join("\n",Data::XDumper::Dump($config)));
+	require "$FindBin::Bin/lib/Local/NoWeak.pm";
+	File::Slurp::write_file("dumped", join("\n",Data::Dumper::Dump(Local::NoWeak::strong_clone($config))));
 	exit(0);
 }
 
 ok(defined $config);
 
 
+# -----------------------------------------------------------------
+{
+
+my $x = $config->get('line')->alltext;
+my $expected = <<'END';
+line con 0
+ exec-timeout 0 0
+line aux 0
+line vty 0 4
+ exec-timeout 9000 0
+ password upGrade3
+ logout-warning 120
+ login
+ escape-character 3
+END
+ok($x,$expected, "get line -> alltext");
+
+
+}
+# -----------------------------------------------------------------
+{
+
+my $x = $config->get('interface ATM3/0.171')->alltext;
+my $expected = <<'END';
+interface ATM3/0.171 point-to-point
+ description Proodit Layer 2
+ pvc 20/133
+  ubr 1544
+  oam-pvc 1
+  oam retry 1 600 1
+  oam ais-rdi 60 3
+  encapsulation aal5mux fr-atm-srv
+END
+ok($x,$expected, "get interface ATM3/0.171 -> alltext");
+
+
+}
 # -----------------------------------------------------------------
 {
 

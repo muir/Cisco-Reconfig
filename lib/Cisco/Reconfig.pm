@@ -3,18 +3,20 @@ package Cisco::Reconfig;
 
 @ISA = qw(Exporter);
 @EXPORT = qw(readconfig);
-@EXPORT_OK = qw(readconfig stringconfig);
+@EXPORT_OK = qw(readconfig stringconfig $minus_one_indent_rx);
 
-$VERSION = 0.8;
+$VERSION = 0.9;
 
 require Exporter;
 use strict;
 use Text::Tabs;
 use Carp;
-use Carp qw(verbose);
+use Carp qw(verbose confess);
 use IO::File;
 use Scalar::Util qw(weaken);
 my $iostrings;
+our $allow_minus_one_indent = qr/class /;
+
 BEGIN	{
 	eval " use IO::String ";
 	$iostrings = $@ ? 0 : 1;
@@ -100,14 +102,19 @@ sub rc1
 				redo if $line;
 			} else {
 				# this really shouldn't happen.  But it does.
-				die "<$.:$_>" unless $prev eq "!\n" || $prev =~ /^!.*<removed>$/;
-				die unless $indent == 0;
+				confess "<$.:$_>" unless $prev eq "!\n" || $prev =~ /^!.*<removed>$/;
+				confess unless $indent == 0;
 				$ciscobug = 1;
 				$indent = $in;
 			}
 		} elsif ($in < $indent) {
 			if ($ciscobug && $in == 0) {
 				$indent = 0;
+			} elsif ($last && $allow_minus_one_indent && $line =~ /^\s*$allow_minus_one_indent/) {
+				confess unless $last->{$seqn};
+				$last->{$subs} = rc1($in, "$last->{$seqn}aaa", $last, $line);
+				undef $last;
+				redo if $line;
 			} else {
 				return $config;
 			}
@@ -141,13 +148,13 @@ sub rc1
 			push(@{$context->{$dupl}}, $n);
 			$context = $n;
 		} elsif (defined $context->{$x[0]}) {
-			die "already $.: '$x[0]' $line";
+			confess "already $.: '$x[0]' $line";
 		}
 		while (@x) {
 			my $x = shift @x;
-die unless defined $x;
-die unless defined $dseq;
-$line = "" unless defined $line;
+			confess unless defined $x;
+			confess unless defined $dseq;
+			$line = "" unless defined $line;
 			$context = $context->{$x} = bless { 
 				$ddata 
 					? ( $debg => "$dseq:$x:$line", 
@@ -158,7 +165,7 @@ $line = "" unless defined $line;
 		}
 		$context->{$seqn} = $seq++;
 		$context->{$text} = $line;
-		die if $context->{$cntx};
+		confess if $context->{$cntx};
 
 		$context->{$cntx} = $config;
 		weaken $context->{$cntx};
@@ -209,7 +216,7 @@ $line = "" unless defined $line;
 
 #sub word { $_[0]->{$word} };
 sub block { $_[0]->{$bloc} }
-sub seqn { $_[0]->{$seqn} || $_[0]->endpt->{$seqn} || die };
+sub seqn { $_[0]->{$seqn} || $_[0]->endpt->{$seqn} || confess };
 sub subs { $_[0]->{$subs} || $_[0]->zoom->{$subs} || $undef };
 sub next { $_[0]->{$next} || $_[0]->zoom->{$next} || $undef };
 #sub undefined { $_[0] eq $undef }
@@ -264,6 +271,7 @@ sub endpt
 sub text 
 {
 	my ($self) = @_;
+	return '' unless $self;
 	if (defined $self->{$text}) {
 		return $debug_text
 			? $self->{$word} . " " . $self->{$text}
@@ -282,7 +290,7 @@ sub text
 			if $debug_text;
 		return join('', map { $_->{$text} } @{$self->{$dupl}});
 	}
-	die unless @p;
+	confess unless @p;
 	return $self->{$p[0]}->text;
 }
 
@@ -311,13 +319,14 @@ sub sequenced_text
 	push(@t, $self->{$subs}->sequenced_text($all))
 		if $all && $self->{$subs};
 	return @t if @t;
-	die unless @p;
+	confess unless @p;
 	return $self->{$p[0]}->sequenced_text($all);
 }
 
 sub alltext 
 {
 	my ($self) = @_;
+	return '' unless $self;
 	my %temp = $self->sequenced_text(1);
 	return join('', map { $temp{$_} } sort keys %temp);
 }
@@ -368,7 +377,7 @@ sub context
 	defined($_[0]->{$cntx}) 
 		? $_[0]->{$cntx}
 		: $_[0]->endpt->{$cntx} 
-			|| ($_[0] ? die "$_[0]" : $undef) 
+			|| ($_[0] ? confess "$_[0]" : $undef) 
 };
 
 #
@@ -574,7 +583,7 @@ sub looks_like_a_block
 sub iinvert
 {
 	my ($indent,@l) = @_;
-	die unless @l;
+	confess unless @l;
 	for $_ (@l) {
 		next unless defined;
 		s/^\s*no /$indent/ or s/^\s*(\S)/${indent}no $1/

@@ -1,3 +1,8 @@
+= 2011/05/17 0.9
+
+Added an escape regex to honor indents that don't make sense.
+
+Documented the "alltext" method
 
 = 2004/10/25 0.8
 
