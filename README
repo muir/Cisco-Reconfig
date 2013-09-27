@@ -273,7 +273,19 @@ TWEAKS
     Some cisco configurations have a minus one indent beginning with the
     "class" keyword. This exception is matched and handled. To change the
     regex for what is accepted for a minus-one indent, override
-    $Cisco::Reconfig::allow_minus_one_indent to a new regex.
+    $Cisco::Reconfig::allow_minus_one_indent to a new regex. Set to "undef"
+    to disable this override.
+
+    Some cisco configurations have a plus one indent beginning with the
+    "service-index" keyword. This exception is matched and handled. To
+    change the regex for what is accepted for a plus-one indent, override
+    $Cisco::Reconfig::allow_plus_one_indent to a new regex. Set to "undef"
+    to disable this override.
+
+    If you encounter other broken indents, please let the maintiner know. If
+    it can be handled with the above overrides, do so. If it cannot, you can
+    change $Cisco::Reconfig::bad_indent_policy to "WARN" or "IGNORE". The
+    default behavior is to die.
 
 OVERLOADING
     Two operators are overloaded: boolean tests and stringification.

@@ -5,10 +5,6 @@ package Cisco::Reconfig;
 @EXPORT = qw(readconfig);
 @EXPORT_OK = qw(readconfig stringconfig $minus_one_indent_rx);
 
-# !!!!!!
-
-our $bad_indent_policy = 'WARN';
-
 $VERSION = 'NO0.91';
 
 require Exporter;
@@ -20,6 +16,9 @@ use IO::File;
 use Scalar::Util qw(weaken);
 my $iostrings;
 our $allow_minus_one_indent = qr/class /;
+our $allow_plus_one_indent = qr/service-policy /;
+our $bad_indent_policy = 'DIE';
+
 
 BEGIN	{
 	eval " use IO::String ";
@@ -110,6 +109,10 @@ sub rc1
 				#
 				# An exclamation marks a reset of the indentation to zero.
 				#
+				if ($indent + 1 == $in && $allow_plus_one_indent && $line =~ /^\s*$allow_plus_one_indent/) {
+					$indent = $indent + 1;
+					redo;
+				}
 				if ($indent != 0 || ($prev ne "!\n" && $prev !~ /^!.*<removed>$/)) {
 					if ($bad_indent_policy eq 'IGNORE') {
 						# okay then
@@ -125,7 +128,7 @@ sub rc1
 		} elsif ($in < $indent) {
 			if ($ciscobug && $in == 0) {
 				$indent = 0;
-			} elsif ($last && $allow_minus_one_indent && $line =~ /^\s*$allow_minus_one_indent/) {
+			} elsif ($last && $indent - 1 == $in && $allow_minus_one_indent && $line =~ /^\s*$allow_minus_one_indent/) {
 				confess unless $last->{$seqn};
 				$last->{$subs} = rc1($in, "$last->{$seqn}aaa", $last, $line);
 				undef $last;
@@ -198,9 +201,9 @@ sub rc1
 		$last = $context;
 
 		if ($line && 
-			($line =~ /banner [a-z\-]+ (.+)/ && $line !~ /^$1+/)
+			($line =~ /(\^C)/ && $line !~ /\^C.*\^C/)
 			|| 
-			($line =~ /(\^C)/ && $line !~ /\^C.*\^C/))
+			($line =~ /banner [a-z\-]+ ((?!\^C).+)/))
 		{
 			#
 			# big special case for banners 'cause they don't follow
@@ -226,10 +229,10 @@ sub rc1
 				$l->{$cntx} = $subnull;
 				weaken($l->{$cntx});
 				push(@{$subnull->{$dupl}}, $l);
-				last if $line =~ /$sep\r?$/;
+				last if $line =~ /$sep[\r]?$/;
 			} 
 			warn "parse probably failed"
-				unless $line =~ /$sep[\r]?$/;
+				unless $line && $line =~ /$sep[\r]?$/;
 		}
 	}
 	return $config;

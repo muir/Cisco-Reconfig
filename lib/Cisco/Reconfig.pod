@@ -310,7 +310,19 @@ Returns true if the object represents a whole configuration block.
 Some cisco configurations have a minus one indent beginning with the
 C<class> keyword.  This exception is matched and handled.  To change the
 regex for what is accepted for a minus-one indent, override
-C<$Cisco::Reconfig::allow_minus_one_indent> to a new regex.
+C<$Cisco::Reconfig::allow_minus_one_indent> to a new regex.  Set to C<undef>
+to disable this override. 
+
+Some cisco configurations have a plus one indent beginning with the
+C<service-index> keyword.  This exception is matched and handled.  To change the
+regex for what is accepted for a plus-one indent, override
+C<$Cisco::Reconfig::allow_plus_one_indent> to a new regex.  Set to C<undef>
+to disable this override.
+
+If you encounter other broken indents, please let the maintiner know.  If it
+can be handled with the above overrides, do so.  If it cannot, you can change
+C<$Cisco::Reconfig::bad_indent_policy> to C<WARN> or C<IGNORE>.  The default
+behavior is to die.
 
 =head1 OVERLOADING
 
