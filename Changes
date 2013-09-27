@@ -8,6 +8,7 @@ Revision history for Perl module Cisco::Reconfig
  - Fix MANIFEST -- main code was missing!
  - Add support for banners w/o ^C
  - Add travis support
+ - Documentation fix for stringconfig()
 
 0.9 2011/05/17
 
