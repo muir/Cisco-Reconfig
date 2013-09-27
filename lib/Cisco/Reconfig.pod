@@ -337,6 +337,6 @@ they are highly self-referrential.
 =head1 LICENSE
 
 Copyright (C) 2002-2010 David Muir Sharnoff <cpan@dave.sharnoff.org>
-Copyright (C) 2011 Cisco, Inc.
+Copyright (C) 2011-2012 Google, Inc.
 This module may be licensed on the same terms as Perl itself.
 

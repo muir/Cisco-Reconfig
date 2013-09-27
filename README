@@ -269,6 +269,12 @@ MISCELLANEOUS METHODS
     ->block()
         Returns true if the object represents a whole configuration block.
 
+TWEAKS
+    Some cisco configurations have a minus one indent beginning with the
+    "class" keyword. This exception is matched and handled. To change the
+    regex for what is accepted for a minus-one indent, override
+    $Cisco::Reconfig::allow_minus_one_indent to a new regex.
+
 OVERLOADING
     Two operators are overloaded: boolean tests and stringification.
     Cisco::Reconfig objects booleanify as true if they are the special
@@ -290,6 +296,7 @@ CAVEATS
     because they are highly self-referrential.
 
 LICENSE
-    Copyright (C) 2002 David Muir Sharnoff <muir@idiom.org> This module may
-    be licensed on the same terms as Perl itself.
+    Copyright (C) 2002-2010 David Muir Sharnoff <cpan@dave.sharnoff.org>
+    Copyright (C) 2011-2012 Google, Inc. This module may be licensed on the
+    same terms as Perl itself.
 

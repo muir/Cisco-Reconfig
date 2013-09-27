@@ -1,14 +1,17 @@
-Reconfig.pm
-Reconfig.pod
+CHANGELOG
+lib/Cisco/Reconfig.pm
+lib/Cisco/Reconfig.pod
 Makefile.PL
 MANIFEST
 README
-CHANGELOG
 t/banner.t
+t/banner2.t
 t/cisco.t
+t/classmap-12-4.t
 t/indentbug.t
 t/intzoom.t
+t/lib/Local/NoWeak.pm
 t/smalltest.t
 t/stringconfig.t
 t/trailingindent.t
-META.yml                                 Module meta-data (added by MakeMaker)
+t/weak_ref_to_obj.t

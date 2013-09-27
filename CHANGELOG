@@ -1,3 +1,9 @@
+Add workaround for broken indents
+Add parsetest.t and multiple tests
+Fix MANIFEST
+Add support for banners w/o ^C
+Add travis support
+
 = 2011/05/17 0.9
 
 Added an escape regex to honor indents that don't make sense.

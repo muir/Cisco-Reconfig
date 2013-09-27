@@ -5,7 +5,11 @@ package Cisco::Reconfig;
 @EXPORT = qw(readconfig);
 @EXPORT_OK = qw(readconfig stringconfig $minus_one_indent_rx);
 
-$VERSION = 0.9;
+# !!!!!!
+
+our $bad_indent_policy = 'WARN';
+
+$VERSION = 'NO0.91';
 
 require Exporter;
 use strict;
@@ -101,9 +105,20 @@ sub rc1
 				undef $last;
 				redo if $line;
 			} else {
-				# this really shouldn't happen.  But it does.
-				confess "<$.:$_>" unless $prev eq "!\n" || $prev =~ /^!.*<removed>$/;
-				confess unless $indent == 0;
+				# This really shouldn't happen.  But it does.  It's a violation of
+				# the usual indentation rules.
+				#
+				# An exclamation marks a reset of the indentation to zero.
+				#
+				if ($indent != 0 || ($prev ne "!\n" && $prev !~ /^!.*<removed>$/)) {
+					if ($bad_indent_policy eq 'IGNORE') {
+						# okay then
+					} elsif ($bad_indent_policy eq 'WARN') {
+						warn "Unexpected indentation change <$.:$_>";
+					} else {
+						confess "Unexpected indentation change <$.:$_>";
+					}
+				}
 				$ciscobug = 1;
 				$indent = $in;
 			}
@@ -182,11 +197,17 @@ sub rc1
 
 		$last = $context;
 
-		if ($line && $line =~ /\^C/ && $line !~ /\^C.*\^C/) {
+		if ($line && 
+			($line =~ /banner [a-z\-]+ (.+)/ && $line !~ /^$1+/)
+			|| 
+			($line =~ /(\^C)/ && $line !~ /\^C.*\^C/))
+		{
 			#
 			# big special case for banners 'cause they don't follow
 			# normal indenting rules
 			#
+			die unless defined $1;
+			my $sep = qr/\Q$1\E/;
 			my $sub = $last->{$subs} = bless { $bloc => 1 }, __PACKAGE__;
 			$sub->{$cntx} = $last;
 			weaken $sub->{$cntx};
@@ -205,10 +226,10 @@ sub rc1
 				$l->{$cntx} = $subnull;
 				weaken($l->{$cntx});
 				push(@{$subnull->{$dupl}}, $l);
-				last if $line =~ /\^C\r?$/;
+				last if $line =~ /$sep\r?$/;
 			} 
 			warn "parse probably failed"
-				unless $line =~ /\^C[\r]?$/;
+				unless $line =~ /$sep[\r]?$/;
 		}
 	}
 	return $config;
