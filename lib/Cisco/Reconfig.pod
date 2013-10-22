@@ -23,7 +23,7 @@ comment.  It knows that C<no> may proceed a line without changing
 where that line exists in the hierarchy.  It doesn't know much else.
 
 Cisco::Reconfig can be used to modify configurations.  The C<set()> method 
-will check the current configruation and return commands to change
+will check the current configuration and return commands to change
 it if it is other than what is wanted (as passed to the C<set()>
 method).
 
@@ -35,7 +35,7 @@ doesn't have to be paranoid about undefined values.  This "undef" object
 tests as false in boolean context however it is C<defined()>ed.
 
 Methods that return configuration items can return items that
-represent any particular word in the configruation file.  For
+represent any particular word in the configuration file.  For
 example, with the following configuration & code, the return
 value for the C<get()> method would represent the word
 C<access-list> in both of the lines:
@@ -152,7 +152,7 @@ listed:
 	 permit ip any any
 	exit
 
-When modifying a block, include the configruation line that starts
+When modifying a block, include the configuration line that starts
 the block in the replacement text.  For example, when setting an entire
 interface, provide the entire block:
 
@@ -187,7 +187,7 @@ The C<$regex> paramater is optional.
 
 =item ->single()
 
-Cisco::Reconfig objects may represent any word in a configruation file.
+Cisco::Reconfig objects may represent any word in a configuration file.
 For example the word "address" in the following is represented by
 an object that would be returned by the code that follows.
 
