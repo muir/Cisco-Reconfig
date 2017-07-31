@@ -3,7 +3,7 @@ package Cisco::Reconfig;
 
 @ISA = qw(Exporter);
 @EXPORT = qw(readconfig);
-@EXPORT_OK = qw(readconfig stringconfig $minus_one_indent_rx);
+@EXPORT_OK = qw(readconfig stringconfig multi $minus_one_indent_rx);
 
 $VERSION = '0.912';
 
@@ -260,6 +260,27 @@ sub single
 	return undef if @p > 1;
 	return $self unless @p;
 	return $self->{$p[0]}->single || $self;
+}
+
+sub multi
+{
+	my (@stuff) = @_;
+	die unless wantarray;
+	my @r;
+	for my $self (@stuff) {
+		if (defined $self->{$text}) {
+			push(@r, $self);
+		} else {
+			my (@p) = grep(! /$spec/o, keys %$self);
+			for my $p (@p) {
+				next unless $p;
+				push(@r, $self->{$p}->multi);
+			}
+		}
+	}
+	@r = grep($_, @r);
+	return $undef unless @r;
+	return sort { $a->seqn cmp $b->seqn } @r;
 }
 
 sub kids
@@ -620,15 +641,19 @@ sub all
 {
 	my ($self, $regex) = @_;
 	$self = $self->zoom;
-	return (map { $self->{$_} } $self->sortit(grep(/$regex/ && ! /$spec/o, keys %$self)))
-		if $regex;
-	return (map { $self->{$_} } $self->sortit(grep(! /$spec/o, keys %$self)));
+	return multi(
+            map { $self->{$_} }
+                $self->sortit(grep(/$regex/ && ! /$spec/o, keys %$self)))
+            if $regex;
+	return multi(
+            map { $self->{$_} }
+                $self->sortit(grep(! /$spec/o, keys %$self)));
 }
 
 sub get
 {
 	my ($self, @designators) = @_;
-	return $self->mget(@designators)
+	return multi($self->mget(@designators))
 		if wantarray && @designators > 1;
 
 	print STDERR "\nGET <@designators> $self->{$debg}" if $debug_get;
@@ -665,8 +690,8 @@ sub get
 	if (wantarray) {
 		$self = $self->zoom;
 		my (@k) = $self->kids;
-		return @k if @k;
-		return $self;
+		return multi(@k) if @k;
+		return multi($self);
 	}
 	return $self;
 }
